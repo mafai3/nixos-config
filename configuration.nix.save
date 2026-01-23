@@ -1,0 +1,129 @@
+
+{ config, pkgs, ... }:
+
+{
+  imports = [ ./hardware-configuration.nix ];
+
+  # 1. Bootloader
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  hardware.graphics.enable = true;
+
+  # 2. Networking
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  # 3. Time zone and Locale (ภาษาไทย)
+  time.timeZone = "Asia/Bangkok";
+  i18n.defaultLocale = "en_US.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "th_TH.UTF-8";
+    LC_IDENTIFICATION = "th_TH.UTF-8";
+    LC_MEASUREMENT = "th_TH.UTF-8";
+    LC_MONETARY = "th_TH.UTF-8";
+    LC_NAME = "th_TH.UTF-8";
+    LC_NUMERIC = "th_TH.UTF-8";
+    LC_PAPER = "th_TH.UTF-8";
+    LC_TELEPHONE = "th_TH.UTF-8";
+    LC_TIME = "th_TH.UTF-8";
+  };
+
+  # 4. X11 และหน้าจอ Desktop (KDE + i3)
+  services.xserver.enable = true;
+  services.displayManager.sddm.enable = true;
+  services.desktopManager.plasma6.enable = true; # เก็บไว้เผื่อฉุกเฉิน
+  services.xserver.windowManager.i3 = {
+    enable = true;
+    extraPackages = with pkgs; [
+      dmenu i3status i3lock
+    ];
+  };
+
+  # 5. การตั้งค่าปุ่มสลับภาษา (Ctrl+Space)
+  services.xserver.xkb = {
+    layout = "us,th";
+    variant = ",";
+    options = "grp:ctrl_space_toggle";
+  };
+
+  # 6. Nvidia Driver 470 สำหรับ 850M (Sync Mode เน้นแรงเพราะเสียบปลั๊กตลอด)
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.nvidia.acceptLicense = true;
+  services.xserver.videoDrivers = [ "nvidia" ];
+  
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = false;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_470;
+    prime = {
+      offload.enable = true;  # ใช้ Nvidia เป็นหลัก
+      intelBusId = "PCI:0:2:0";
+      nvidiaBusId = "PCI:10:0:0";
+    };
+  };
+  
+  # 6.1 Thunar drive
+  services.gvfs.enable = true; # Thunar Thumbdrive/Disk
+  services.tumbler.enable = true; # Thunar Thumnail
+  services.gvfs.package = pkgs.gvfs; 
+ # Samba (Windows Share)
+  services.samba = {
+    enable = true;
+  };
+
+  # 7. เสียงและเครื่องพิมพ์
+  services.printing.enable = true;
+  services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  # 8. รายชื่อโปรแกรมที่ติดตั้งในระบบ (ยุบรวมที่เดียว)
+  environment.systemPackages = with pkgs; [
+    # GUI Tools
+    firefox
+    kdePackages.kate
+    alacritty
+    arandr
+    rofi
+    psmisc
+    xfce.thunar          
+    xfce.thunar-archive-plugin
+    xfce.thunar-volman
+    nitrogen             
+    lxappearance         # Theme/icon
+    pavucontrol
+
+    # i3 Ecosystem
+    (polybar.override { i3Support = true; })
+    picom
+    feh
+    
+    # Fonts & Icons
+    google-fonts
+    noto-fonts
+    noto-fonts-cjk-sans
+    font-awesome
+  ];
+
+  # 9. การตั้งค่าฟอนต์
+  fonts.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-color-emoji
+  ];
+
+  # 10. User Account (ตรวจสอบชื่อให้ตรงกับของคุณ)
+  users.users.nixka = {
+    isNormalUser = true;
+    description = "nixka";
+    extraGroups = [ "networkmanager" "wheel" ];
+  };
+
+  system.stateVersion = "24.11"; # ห้ามแก้บรรทัดนี้เด็ดขาด
+}

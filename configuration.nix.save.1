@@ -1,0 +1,230 @@
+{ config, pkgs, ... }:
+
+{
+  imports = [
+    ./hardware-configuration.nix
+    <home-manager/nixos>
+  ];
+
+  # 1. Bootloader
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  hardware.graphics.enable = true;
+
+  # 1.1 mount thunar can go win
+  services.udisks2.enable = true;
+  security.polkit.enable = true;
+  fileSystems."/mnt/win_data" = {
+    device = "/dev/sda3";
+    fsType = "ntfs3";
+    options = [ "nofail" "rw" "uid=1000" "force" ];
+  };
+
+  # 1.2 system auto delete nix rollback
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
+  nix.settings.auto-optimise-store = true;
+
+  # 2. Networking
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  # 3. Time zone and Locale
+  time.timeZone = "Asia/Bangkok";
+  i18n.defaultLocale = "en_US.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "th_TH.UTF-8";
+    LC_IDENTIFICATION = "th_TH.UTF-8";
+    LC_MEASUREMENT = "th_TH.UTF-8";
+    LC_MONETARY = "th_TH.UTF-8";
+    LC_NAME = "th_TH.UTF-8";
+    LC_NUMERIC = "th_TH.UTF-8";
+    LC_PAPER = "th_TH.UTF-8";
+    LC_TELEPHONE = "th_TH.UTF-8";
+    LC_TIME = "th_TH.UTF-8";
+  };
+
+  # 4. X11 และหน้าจอ Desktop
+  services.xserver.enable = true;
+  services.displayManager.sddm.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  services.xserver.windowManager.i3 = {
+    enable = true;
+    extraPackages = with pkgs; [
+      dmenu i3status i3lock
+    ];
+  };
+
+  # 5. การตั้งค่าปุ่มสลับภาษา
+  services.xserver.xkb = {
+    layout = "us,th";
+    variant = ",";
+    options = "grp:ctrl_space_toggle";
+  };
+
+  # 6. Nvidia Driver 470
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.nvidia.acceptLicense = true;
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = false;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_470;
+    prime = {
+      offload.enable = true;
+      intelBusId = "PCI:0:2:0";
+      nvidiaBusId = "PCI:10:0:0";
+    };
+  };
+
+  # 6.1 Thunar drive & Samba
+  services.gvfs.enable = true;
+  services.tumbler.enable = true;
+  networking.firewall.allowPing = true;
+  services.samba.enable = true;
+
+  # 7. เสียง
+  services.printing.enable = true;
+  services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  # 8. รายชื่อโปรแกรม
+  environment.systemPackages = with pkgs; [
+    firefox kdePackages.kate ghostty alacritty arandr rofi psmisc
+    xfce.thunar xfce.thunar-archive-plugin xfce.thunar-volman
+    lxappearance pavucontrol samba cifs-utils flameshot polkit_gnome fastfetch veracrypt
+    (polybar.override { i3Support = true; })
+    picom feh google-fonts noto-fonts noto-fonts-cjk-sans font-awesome
+  ];
+
+  # 9. ฟอนต์
+  fonts.packages = with pkgs; [
+    noto-fonts noto-fonts-cjk-sans noto-fonts-color-emoji font-awesome
+    nerd-fonts.jetbrains-mono nerd-fonts.iosevka
+  ];
+
+  # 10. User Account
+  users.users.nixka = {
+    isNormalUser = true;
+    description = "nixka";
+    extraGroups = [ "wheel" "networkmanager" "video" "storage" "disk" ];
+  };
+
+  system.stateVersion = "24.11";
+R
+  # --- Home Manager ---
+home-manager.users.nixka = { pkgs, lib, ... }: {
+    home.stateVersion = "25.11"; 
+    home.enableNixpkgsReleaseCheck = false; 
+
+    xsession.windowManager.i3 = {
+      enable = true;
+      config = null; # ให้ i3 ใช้ค่าจาก extraConfig เท่านั้น เพื่อป้องกันคีย์ลัดซ้ำ
+      extraConfig = ''
+        set $mod Mod1
+        font pango:JetBrainsMono Nerd Font 8
+
+        # --- คีย์ลัดหลัก ---
+        bindsym $mod+c exec alacritty
+        bindsym $mod+q kill
+        bindsym $mod+d exec rofi -show drun
+        bindsym $mod+z exec thunar
+        bindsym $mod+x exec firefox
+        
+        # --- การเลื่อนหน้าต่าง ---
+        bindsym $mod+h focus left
+        bindsym $mod+j focus down
+        bindsym $mod+k focus up
+        bindsym $mod+l focus right
+        
+        # --- Workspaces ---
+        set $ws1 "1"
+        set $ws2 "2"
+        bindsym $mod+1 workspace number $ws1
+        bindsym $mod+2 workspace number $ws2
+        bindsym $mod+Shift+1 move container to workspace number $ws1
+        bindsym $mod+Shift+2 move container to workspace number $ws2
+
+        # --- ระบบ ---
+        exec --no-startup-id nm-applet
+        exec --no-startup-id /run/current-system/sw/libexec/polkit-gnome-authentication-agent-1 &
+        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 1200 /home/nixka/Downloads/wallpaper/ &
+        
+        gaps inner 10
+        gaps outer 5
+        for_window [class=".*"] border pixel 0
+
+        # --- โหมด Resize (ย้ายปุ่มเข้าโหมดไว้นอกปีกกา) ---
+        mode "resize" {
+            bindsym h resize shrink width 10 px or 10 ppt
+            bindsym j resize grow height 10 px or 10 ppt
+            bindsym k resize shrink height 10 px or 10 ppt
+            bindsym l resize grow width 10 px or 10 ppt
+            bindsym Return mode "default"
+            bindsym Escape mode "default"
+        }
+        bindsym $mod+r mode "resize"
+      '';
+    };
+
+    services.picom = {
+      enable = true;
+      backend = "xrender"; 
+      vSync = true;
+      settings = {
+        corner-radius = 12;
+        opacity-rule = [
+          "100:class_g = 'firefox'"
+          "96:class_g = 'Thunar'"
+          "85:class_g = 'Alacritty'"
+          "85:class_g = 'Polybar'"
+        ];
+      };
+    };  
+
+    services.polybar = {
+      enable = true;
+      script = "polybar mybar &";
+      config = {
+        "bar/mybar" = {
+          width = "100%";
+          height = "15pt";
+          background = "#282A36";
+          foreground = "#F8F8F2";
+          font-0 = "JetBrainsMono Nerd Font:size=10;2";
+          modules-left = "cpu memory";
+          modules-center = "i3";
+          modules-right = "network xkeyboard date";
+        };
+        "module/date" = { type = "internal/date"; date = "%H:%M"; label = "%date%"; };
+        "module/i3" = { 
+          type = "internal/i3"; 
+          label-focused-background = "#44475a"; 
+          label-focused-padding = 2; 
+        };
+        "module/cpu" = { type = "internal/cpu"; label = "CPU %percentage%% "; };
+        "module/memory" = { type = "internal/memory"; label = "RAM %percentage_used%% "; };
+        "module/network" = {
+          type = "internal/network";
+          interface = "enp6s0"; 
+          label-connected = " %local_ip% ";
+        };
+        "module/xkeyboard" = {
+          type = "internal/xkeyboard";
+          label-layout = "%layout%";
+        };
+      };
+    };
+  };
+}
