@@ -47,7 +47,7 @@
     LC_TIME = "th_TH.UTF-8";
   };
 
-  # 4. X11 และหน้าจอ Desktop
+  # 4. X11 and Desktop
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
@@ -58,7 +58,7 @@
     ];
   };
 
-  # 5. การตั้งค่าปุ่มสลับภาษา
+  # 5. Layout
   services.xserver.xkb = {
     layout = "us,th";
     variant = ",";
@@ -99,7 +99,7 @@
     pulse.enable = true;
   };
 
-  # 8. รายชื่อโปรแกรม
+  # 8. Programs
   environment.systemPackages = with pkgs; [
     firefox kdePackages.kate alacritty arandr rofi psmisc
     xfce.thunar xfce.thunar-archive-plugin xfce.thunar-volman
@@ -110,7 +110,7 @@
     google-fonts noto-fonts noto-fonts-cjk-sans font-awesome
   ];
 
-  # 9. ฟอนต์
+  # 9. Fonts
   fonts.packages = with pkgs; [
     noto-fonts noto-fonts-cjk-sans noto-fonts-color-emoji font-awesome
     nerd-fonts.jetbrains-mono nerd-fonts.iosevka
@@ -155,7 +155,25 @@
         bindsym $mod+j focus down
         bindsym $mod+k focus up
         bindsym $mod+l focus right
-        
+        # Focus with arrow
+        bindsym $mod+Left focus left
+        bindsym $mod+Down focus down
+        bindsym $mod+Up focus up
+        bindsym $mod+Right focus right
+        # Focus move
+        bindsym $mod+Shift+Left move left
+        bindsym $mod+Shift+Down move down
+        bindsym $mod+Shift+Up move up
+        bindsym $mod+Shift+Right move right
+       
+        # Stacked and Tabbed Layout
+        bindsym $mod+s layout stacking
+        bindsym $mod+w layout tabbed
+        # Toggle Spliit
+        bindsym $mod+e layout toggle split
+        bindsym $mod+b split h
+        bindsym $mod+v split v 
+
         # Floating
         bindsym $mod+Shift+space floating toggle
         floating_modifier $mod        
@@ -172,7 +190,7 @@
         bindsym $mod+9 workspace number 9
         bindsym $mod+0 workspace number 10
 
-        # --- การย้ายหน้าต่างไป Workspaces (Shift + Number) ---
+        # --- move  Workspaces (Shift + Number) ---
         bindsym $mod+Shift+1 move container to workspace number 1
         bindsym $mod+Shift+2 move container to workspace number 2
         bindsym $mod+Shift+3 move container to workspace number 3
@@ -184,7 +202,7 @@
         bindsym $mod+Shift+9 move container to workspace number 9
         bindsym $mod+Shift+0 move container to workspace number 10
 
-        # Autostart Polybar & อื่นๆ
+        # All Auto Star
         exec_always --no-startup-id bash /home/nixka/.screenlayout/monitor.sh
         exec_always --no-startup-id pkill polybar; polybar mybar &
         exec --no-startup-id nm-applet
@@ -213,11 +231,12 @@
       vSync = true;
       settings = {
         corner-radius = 12;
+        round-borders = 1;
         opacity-rule = [
           "100:class_g = 'firefox'"
           "96:class_g = 'Thunar'"
           "85:class_g = 'Alacritty'"
-          "85:class_g = 'Polybar'"
+          #"85:class_g = 'Polybar'"
         ];
       };
     };  
@@ -227,12 +246,11 @@
       config = {
         "bar/mybar" = {
           # --- ตั้งค่าความโปร่งใสหลัก ---
+          height = "20pt";
+          radius = 10;
           background = "#00000000"; # ใสสนิท 100%
-          foreground = "#F8F8F2";
-          
+          foreground = "#F8F8F2"; 
           width = "100%";
-          height = "22pt";
-          radius = 0;
           
           # ระยะห่างจากขอบจอ (เพื่อให้ดูเหมือนลอย)
           border-size = "4pt";
@@ -243,24 +261,29 @@
           module-margin = 1;
 
           font-0 = "JetBrainsMono Nerd Font:size=10;2";
-          
-          modules-left = "cpu memory temperature disk";
+          font-1 = "Symbols Nerd Font:size=10;2";
+
+          modules-left = "cpu memory temperature";
           modules-center = "i3";
-          modules-right = "pulseaudio xkeyboard date";
+          modules-right = "pulseaudio xkeyboard date disk";
 
           tray-position = "right";
           #tray-transparent = true;
           
-          scroll-up = "#pulseaudio.prev";
-          scroll-down = "#pulseaudio.next";
+          scroll-up = "pactl set-sink-volume @DEFAULT_SINK@ +5%";
+          scroll-down = "pactl set-sink-volume @DEFAULT_SINK@ -5%";
         };
 
         # --- ส่วนกลาง: ตัวเลข Workspace แบบมีกล่องล้อมรอบ (สไตล์ในรูป) ---
         "module/i3" = {
           type = "internal/i3";
+          format = "<label-state> <label-mode>";
           pin-workspaces = true;
           show-urgent = true;
-          
+          enable-click = true;
+          enable-scroll = true;          
+          index-sort = true;
+
           # ตัวเลขที่เลือก (Focused)
           label-focused = " %index% ";
           label-focused-background = "#6272A4"; # สีม่วงน้ำเงินเข้ม
@@ -269,6 +292,8 @@
           label-focused-padding = 2;
 
           # ตัวเลขที่ไม่ได้เลือก
+          label-visible = " %index% ";
+          label-visible-padding = 2;
           label-unfocused = " %index% ";
           label-unfocused-background = "#282A36"; # สีเทาเข้ม
           label-unfocused-padding = 2;
@@ -311,6 +336,9 @@
 
         "module/pulseaudio" = {
           type = "internal/pulseaudio";
+          interval = 1;
+
+          format-volume = "<label-volume>";
           format-volume-background = "#282A36";
           format-volume-padding = 2;
           label-volume = " %percentage%%";
@@ -332,6 +360,7 @@
 
         "module/date" = {
           type = "internal/date";
+          interval = 1;
           date = "%H:%M";
           format-background = "#282A36";
           format-padding = 2;
