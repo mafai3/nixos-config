@@ -104,7 +104,7 @@
     firefox kdePackages.kate alacritty arandr rofi psmisc
     xfce.thunar xfce.thunar-archive-plugin xfce.thunar-volman
     lxappearance pavucontrol samba cifs-utils flameshot polkit_gnome fastfetch veracrypt
-    picom feh git pkgs.chromium
+    picom feh git
 
     google-fonts noto-fonts noto-fonts-cjk-sans font-awesome
   ];
@@ -215,7 +215,7 @@
         exec_always --no-startup-id systemctl --user restart polybar
         exec --no-startup-id nm-applet
         exec --no-startup-id /run/current-system/sw/libexec/polkit-gnome-authentication-agent-1 &
-        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 500o /home/nixka/Downloads/wallpaper/ &
+        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 1200 /home/nixka/Downloads/wallpaper/ &
         
         gaps inner 10
         gaps outer 5
@@ -357,7 +357,7 @@
           label-volume-foreground = "#FFB86C"; # สีส้ม
        
           format-muted = "<label-muted>";
-          label-muted = "🔇";
+          label-muted = " Muted";
           label-muted-foreground = "#6272A4";
           label-muted-background = "#282A36";
           label-muted-padding = 2;
