@@ -10,6 +10,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   hardware.graphics.enable = true;
+  boot.kernelModules = [ "coretemp" "dell-smm-hwmon" ];
 
   # 1.1 mount thunar can go win
   services.udisks2.enable = true;
@@ -87,6 +88,7 @@
   services.tumbler.enable = true;
   networking.firewall.allowPing = true;
   services.samba.enable = true;
+  services.thermald.enable = true;
 
   # 7. เสียง
   services.printing.enable = true;
@@ -98,13 +100,22 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+   services.power-profiles-daemon.enable = false;
+
+   services.tlp = {
+    enable = true;
+    settings = {
+      CPU_SCALING_GOVERNOR_ON_AC = "performance";
+      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+    }; # อันนี้ปิด settings
+  };   # อันนี้ปิด services.tlp
 
   # 8. Programs
   environment.systemPackages = with pkgs; [
     firefox kdePackages.kate alacritty arandr rofi psmisc
     xfce.thunar xfce.thunar-archive-plugin xfce.thunar-volman
     lxappearance pavucontrol samba cifs-utils flameshot polkit_gnome fastfetch veracrypt
-    picom feh git pkgs.chromium
+    picom feh git pkgs.chromium lm_sensors
 
     google-fonts noto-fonts noto-fonts-cjk-sans font-awesome
   ];
@@ -268,7 +279,7 @@
           border-color = "#00000000";
 
           padding-left = 40;
-          padding-right = 55;
+          padding-right = 40;
           module-margin = 1;
 
           font-0 = "JetBrainsMono Nerd Font:size=9;2";
@@ -330,10 +341,21 @@
         
         "module/temperature" = {
           type = "internal/temperature";
+          interval = 2;  # อัพเดททุก 2 วินาที
+          thermal-zone = 4;  # ใช้ thermal zone แรก (CPU)
+          warn-temperature = 80;  # เตือนเมื่อร้อนเกิน 70°C
+          
+          format = "<label>";
           format-background = "#282A36";
           format-padding = 2;
           label = "🔥 %temperature-c%";
-          label-foreground = "#F1FA8C"; # สีเหลือง
+          label-foreground = "#F1FA8C";
+          
+          format-warn = "<label-warn>";
+          format-warn-background = "#282A36";
+          format-warn-padding = 2;
+          label-warn = "🔥 %temperature-c%";
+          label-warn-foreground = "#FF5555";
         };
 
         "module/disk" = {
@@ -371,13 +393,13 @@
           label-layout-foreground = "#FF79C6"; # สีชมพู
         };
 
-        "module/date" = {
+         "module/date" = {
           type = "internal/date";
           interval = 1;
-          date = "%H:%M";
+          date = "%Y-%m-%d 📅 %H:%M:%S";
           format-background = "#282A36";
           format-padding = 2;
-          label = " %date%";
+          label = "%date%";
           label-foreground = "#F8F8F2";
         };
       };
