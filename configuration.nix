@@ -65,7 +65,7 @@
     options = "grp:ctrl_space_toggle";
   };
 
-  # 6. Nvidia Driver 470
+  # 6. Nvidia Driver 470.256.02 (Dell Inspiron 7447 / GTX 850M / i7 Gen4)
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.nvidia.acceptLicense = true;
   services.xserver.videoDrivers = [ "nvidia" ];
@@ -104,7 +104,6 @@
     firefox kdePackages.kate alacritty arandr rofi psmisc
     xfce.thunar xfce.thunar-archive-plugin xfce.thunar-volman
     lxappearance pavucontrol samba cifs-utils flameshot polkit_gnome fastfetch veracrypt
-    (polybar.override { i3Support = true; })
     picom feh git
 
     google-fonts noto-fonts noto-fonts-cjk-sans font-awesome
@@ -112,8 +111,9 @@
 
   # 9. Fonts
   fonts.packages = with pkgs; [
-    noto-fonts noto-fonts-cjk-sans noto-fonts-color-emoji font-awesome
-    nerd-fonts.jetbrains-mono nerd-fonts.iosevka
+    noto-fonts noto-fonts-cjk-sans noto-fonts-color-emoji
+    font-awesome_6
+    nerd-fonts.jetbrains-mono nerd-fonts.iosevka nerd-fonts.symbols-only
   ];
 
   # 10. User Account
@@ -125,11 +125,19 @@
 
   system.stateVersion = "24.11";
 
-  # --- Home Manager ---
-  home-manager.backupFileExtension = "backup";
-  home-manager.users.nixka = { pkgs, lib, ... }: {
+    # --- Home Manager ---
+    home-manager.backupFileExtension = "backup";
+    home-manager.users.nixka = { pkgs, lib, ... }: {
     home.stateVersion = "25.11"; 
-    home.enableNixpkgsReleaseCheck = false; 
+    home.enableNixpkgsReleaseCheck = false;
+    
+    # ติดตั้ง polybar ที่มี i3 + pulse support ใน home-manager
+    home.packages = with pkgs; [
+      (polybar.override { 
+        i3Support = true;
+        pulseSupport = true;
+      })
+    ]; 
 
     xsession.windowManager.i3 = {
       enable = true;
@@ -202,9 +210,9 @@
         bindsym $mod+Shift+9 move container to workspace number 9
         bindsym $mod+Shift+0 move container to workspace number 10
 
-        # All Auto Star
+        # All Auto Start
         exec_always --no-startup-id bash /home/nixka/.screenlayout/monitor.sh
-        exec_always --no-startup-id pkill polybar; polybar mybar &
+        exec_always --no-startup-id systemctl --user restart polybar
         exec --no-startup-id nm-applet
         exec --no-startup-id /run/current-system/sw/libexec/polkit-gnome-authentication-agent-1 &
         exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 1200 /home/nixka/Downloads/wallpaper/ &
@@ -235,40 +243,43 @@
         opacity-rule = [
           "100:class_g = 'firefox'"
           "96:class_g = 'Thunar'"
-          "85:class_g = 'Alacritty'"
-          #"85:class_g = 'Polybar'"
+          "80:class_g = 'Alacritty'"
         ];
       };
     };  
      services.polybar = {
       enable = true;
-      script = "";
+      package = pkgs.polybar.override {
+        i3Support = true;
+        pulseSupport = true;
+      };
+      script = "pkill polybar; polybar mybar &";
       config = {
         "bar/mybar" = {
           # --- ตั้งค่าความโปร่งใสหลัก ---
-          height = "20pt";
-          radius = 10;
-          background = "#00000000"; # ใสสนิท 100%
-          foreground = "#F8F8F2"; 
+          height = "22pt";
+          radius = 0;
+          background = "#00000000";
+          foreground = "#F8F8F2";
           width = "100%";
           
           # ระยะห่างจากขอบจอ (เพื่อให้ดูเหมือนลอย)
           border-size = "4pt";
           border-color = "#00000000";
 
-          padding-left = 1;
-          padding-right = 1;
+          padding-left = 40;
+          padding-right = 55;
           module-margin = 1;
 
-          font-0 = "JetBrainsMono Nerd Font:size=10;2";
-          font-1 = "Symbols Nerd Font:size=10;2";
+          font-0 = "JetBrainsMono Nerd Font:size=9;2";
+          font-1 = "Noto Color Emoji:scale=10;2";
+          font-2 = "Symbols Nerd Font Mono:size=10;2";
 
-          modules-left = "cpu memory temperature";
+          modules-left = "cpu memory temperature disk";
           modules-center = "i3";
-          modules-right = "pulseaudio xkeyboard date disk";
+          modules-right = "pulseaudio xkeyboard date";
 
           tray-position = "right";
-          #tray-transparent = true;
           
           scroll-up = "pactl set-sink-volume @DEFAULT_SINK@ +5%";
           scroll-down = "pactl set-sink-volume @DEFAULT_SINK@ -5%";
@@ -305,7 +316,7 @@
           format = "<label>";
           format-background = "#282A36";
           format-padding = 2;
-          label = "CPU %percentage%%";
+          label = "🧠 %percentage%%";
           label-foreground = "#BD93F9"; # สีม่วงอ่อน
         };
 
@@ -313,7 +324,7 @@
           type = "internal/memory";
           format-background = "#282A36";
           format-padding = 2;
-          label = "RAM %percentage_used%%";
+          label = "🐏 %percentage_used%%";
           label-foreground = "#50FA7B"; # สีเขียวสว่าง
         };
         
@@ -321,7 +332,7 @@
           type = "internal/temperature";
           format-background = "#282A36";
           format-padding = 2;
-          label = " %temperature-c%";
+          label = "🔥 %temperature-c%";
           label-foreground = "#F1FA8C"; # สีเหลือง
         };
 
@@ -330,21 +341,23 @@
           mount-0 = "/";
           format-mounted-background = "#282A36";
           format-mounted-padding = 2;
-          label-mounted = "󰋊 %free%";
+          label-mounted = "📦 %free%";
           label-mounted-foreground = "#8BE9FD"; # สีฟ้า
         };
 
         "module/pulseaudio" = {
           type = "internal/pulseaudio";
-          interval = 1;
+          use-ui-max = true;
+          interval = 5;
 
           format-volume = "<label-volume>";
           format-volume-background = "#282A36";
           format-volume-padding = 2;
-          label-volume = " %percentage%%";
+          label-volume = "📣 %percentage%%";
           label-volume-foreground = "#FFB86C"; # สีส้ม
        
-          label-muted = "󰝟 Muted";
+          format-muted = "<label-muted>";
+          label-muted = " Muted";
           label-muted-foreground = "#6272A4";
           label-muted-background = "#282A36";
           label-muted-padding = 2;
@@ -354,7 +367,7 @@
           type = "internal/xkeyboard";
           format-background = "#282A36";
           format-padding = 2;
-          label-layout = "󰌌 %layout%";
+          label-layout = "👾%layout%";
           label-layout-foreground = "#FF79C6"; # สีชมพู
         };
 
@@ -364,11 +377,10 @@
           date = "%H:%M";
           format-background = "#282A36";
           format-padding = 2;
-          label = " %date%";
+          label = " %date%";
           label-foreground = "#F8F8F2";
         };
       };
     };
   };
 }
-
