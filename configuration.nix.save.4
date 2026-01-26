@@ -56,11 +56,6 @@
     '';
   };
 
-  # 1.4 backup github auto
-  environment.shellAliases = {
-  nix-save = "cd /etc/nixos && git status && sudo git add . && sudo git commit -m 'Backup config' && sudo git push";
-};
-
   # 2. Networking
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
@@ -334,40 +329,27 @@
             bindsym j resize grow height 10 px or 10 ppt
             bindsym k resize shrink height 10 px or 10 ppt
             bindsym l resize grow width 10 px or 10 ppt
-           
-            bindsym Left resize shrink width 10 px or 10 ppt
-            bindsym Down resize grow height 10 px or 10 ppt
-            bindsym Up resize shrink height 10 px or 10 ppt
-            bindsym Right resize grow width 10 px or 10 ppt
-
             bindsym Return mode "default"
             bindsym Escape mode "default"
         }
-        bindsym $mod+a mode "resize"
+        bindsym $mod+r mode "resize"
       '';
     };
 
      services.picom = {
     enable = true;
-    backend = "glx"; # หรือใช้ "glx" ถ้าเครื่องมี GPU และอยากให้ลื่นขึ้น
+    backend = "xrender"; # glx use GPU , xrender use intel
     vSync = true;
     settings = {
-      glx-no-stencil = true;
-      glx-no-rebind-pixmap = true;
       corner-radius = 12;
       round-borders = 1;
-      active-opacity = 1.0;
-      inactive-dim = 0.15; 
-      inactive-opacity = 0.90;
+      active-opacity = 1.0; 
+      inactive-opacity = 1.0;
 
        opacity-rule = [
       "100:class_g = 'librewolf' && fullscreen"
-      "100:class_g = 'LibreWolf' && fullscreen"
-      
-      "97:class_g = 'librewolf' && !fullscreen"
-      "97:class_g = 'LibreWolf' && !fullscreen"
-      
-      "97:class_g = 'Thunar'"
+      "95:class_g = 'librewolf' && !fullscreen"      
+      "96:class_g = 'Thunar'"
       "85:class_g = 'Alacritty'"
       ];
       detect-client-opacity = true;
@@ -397,7 +379,7 @@
           border-color = "#00000000";
 
           padding-left = 30;
-          padding-right = 25;
+          padding-right = 40;
           module-margin = 1;
 
           font-0 = "JetBrainsMono Nerd Font:size=9;2";
@@ -535,8 +517,7 @@
          "module/date" = {
           type = "internal/date";
           interval = 1;
-          date = "%a %d %b %Y ⌛ %H:%M:%S"; 
-         #date = "%a %d %b %Y  📅 %H:%M:%S";
+          date = "%d-%m-%y 📅 %H:%M:%S";
           format-background = "#282A36";
           format-padding = 2;
           label = "%date%";
