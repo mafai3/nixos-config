@@ -59,8 +59,8 @@
   };
   # Test push to GitHub
   # 1.4 backup github auto
-  environment.shellAliases = {
-  nix-save = "cd /etc/nixos && git status && sudo git add . && sudo git commit -m 'Backup config' && sudo git push";
+ environment.shellAliases = {
+   nix-save = "bash /etc/nixos/scripts/backup.sh";
 };
 
   # 2. Networking
