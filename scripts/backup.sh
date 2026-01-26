@@ -3,6 +3,10 @@
 echo "🔍 Checking changes..."
 cd /etc/nixos
 
+# Pull ก่อนเผื่อมี commit ใหม่จาก GitHub
+echo "⬇️  Pulling latest changes..."
+sudo git pull --rebase
+
 if [[ -n $(git status --porcelain) ]]; then
     echo "📦 Adding files..."
     sudo git add .
