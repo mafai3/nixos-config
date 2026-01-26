@@ -9,7 +9,7 @@
   # 1. Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  #hardware.graphics.enable = true;
+  hardware.graphics.enable = true;
   boot.kernelModules = [ "coretemp" "dell-smm-hwmon" ];
 
   # 1.1 mount thunar can go win
@@ -20,16 +20,6 @@
     fsType = "ntfs3";
     options = [ "nofail" "rw" "uid=1000" "force" ];
   };
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true; # สำคัญสำหรับการเล่นเกมหรือรันโปรแกรม 32-bit
-    extraPackages = with pkgs; [
-      intel-media-driver
-      intel-vaapi-driver
-      libva-vdpau-driver
-      libvdpau-va-gl
-    ];
-  };
 
   # 1.2 system auto delete nix rollback
   nix.gc = {
@@ -38,23 +28,6 @@
     options = "--delete-older-than 7d";
   };
   nix.settings.auto-optimise-store = true;
-
-# 1.3 เปลี่ยน Shell เป็น Zsh เพื่อให้มีสีตอนพิมพ์คำสั่ง
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    autosuggestions.enable = true;
-    syntaxHighlighting.enable = true;
-
-      interactiveShellInit = ''
-      # ตั้งค่าสี Prompt ให้เป็น Dracula (ม่วง-ฟ้า)
-      export PROMPT='%F{141}%n%f@%F{147}%m%f:%F{81}%~%f$ '
-      
-      # ตั้งค่า alias ให้ ls มีสีเสมอ
-      alias ls='ls --color=auto'
-      alias ll='ls -la'
-    '';
-  };
 
   # 2. Networking
   networking.hostName = "nixos";
@@ -140,7 +113,6 @@
   # 8. Programs
   environment.systemPackages = with pkgs; [
     firefox
-    pkgs.librewolf
     kdePackages.kate
     alacritty
     arandr
@@ -203,7 +175,6 @@
   # 10. User Account
   users.users.nixka = {
     isNormalUser = true;
-    shell = pkgs.zsh;
     description = "nixka";
     extraGroups = [ "wheel" "networkmanager" "video" "storage" "disk" ];
   };
@@ -247,7 +218,7 @@
       config = null;
       extraConfig = ''
         set $mod Mod1
-        font pango:JetBrainsMono Nerd Font 8
+        font pango:JetBrainsMono Nerd Font 10
 
         bindsym $mod+Shift+e exec --no-startup-id "echo -e 'Logout\nReboot\nShutdown' | rofi -dmenu -p 'Power Menu:' -i | xargs -I{} bash -c 'case {} in Logout) i3-msg exit;; Reboot) systemctl reboot;; Shutdown) systemctl poweroff;; esac'"
 
@@ -256,7 +227,7 @@
         bindsym $mod+q kill
         bindsym $mod+d exec rofi -show drun
         bindsym $mod+z exec thunar
-        bindsym $mod+x exec librewolf
+        bindsym $mod+x exec firefox
         bindsym $mod+Shift+c reload
         bindsym Print exec flameshot gui
         bindsym $mod+Shift+r restart
@@ -318,8 +289,8 @@
         exec_always --no-startup-id systemctl --user restart polybar
         exec --no-startup-id nm-applet
         exec --no-startup-id /run/current-system/sw/libexec/polkit-gnome-authentication-agent-1 &
-        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 500 /home/nixka/Downloads/wallpaper/
-       
+        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 500o /home/nixka/Downloads/wallpaper/ &
+        
         gaps inner 15
         gaps outer 10
         for_window [class=".*"] border pixel 0
