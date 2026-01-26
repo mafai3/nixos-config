@@ -325,7 +325,7 @@
         exec_always --no-startup-id systemctl --user restart polybar
         exec --no-startup-id nm-applet
         exec --no-startup-id /run/current-system/sw/libexec/polkit-gnome-authentication-agent-1 &
-        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 500 /home/nixka/Downloads/wallpaper/
+        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 200 /home/nixka/Downloads/wallpaper/
        
         gaps inner 15
         gaps outer 10
