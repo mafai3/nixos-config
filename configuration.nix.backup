@@ -64,13 +64,6 @@
     priority = 10;       # ให้ใช้ zram ก่อน swap ปกติ
   };
 
-  # earlyoom - ป้องกันระบบแฮงเมื่อ RAM เต็ม
-  services.earlyoom = {
-    enable = true;
-    freeMemThreshold = 5;  # เริ่มทำงานเมื่อ RAM เหลือ 5%
-    freeSwapThreshold = 10; # เริ่มทำงานเมื่อ Swap เหลือ 10%
-  };
-
 # 1.3 เปลี่ยน Shell เป็น Zsh เพื่อให้มีสีตอนพิมพ์คำสั่ง
   programs.zsh = {
     enable = true;
@@ -161,8 +154,8 @@
   };
 
   # 6.1 Thunar drive & Samba
-  # services.gvfs.enable = true;      # ปิดถ้าไม่ mount network drives (ประหยัด ~80MB)
-  # services.tumbler.enable = true;   # ปิดถ้าไม่ใช้ thumbnail preview (ประหยัด ~50MB)
+  services.gvfs.enable = true;
+  services.tumbler.enable = true;
   networking.firewall.allowPing = true;
   # services.samba.enable = true;  # ปิดถ้าไม่ได้แชร์ไฟล์ (ประหยัด ~100MB)
   services.thermald.enable = true;
@@ -170,7 +163,7 @@
   # 7. เสียง
   # services.printing.enable = true;  # ปิดถ้าไม่มี printer (ประหยัด ~50MB)
   services.pulseaudio.enable = false;
-  # security.rtkit.enable = true;      # ปิดถ้าไม่ทำ audio production (ประหยัด ~20MB)
+  security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -216,25 +209,25 @@
     rofi
     psmisc
     xfce.thunar
-    # xfce.thunar-archive-plugin  # ปิดถ้าไม่จำเป็น
-    # xfce.thunar-volman          # ปิดถ้าไม่จำเป็น
+    xfce.thunar-archive-plugin
+    xfce.thunar-volman
     lxappearance
     pavucontrol
     # samba  # ย้ายไปอยู่ใน services แล้ว
-    # cifs-utils      # ปิดถ้าไม่ mount Windows shares
+    cifs-utils
     flameshot
-    lxqt.lxqt-policykit  # เบากว่า polkit_gnome (~50MB)
+    polkit_gnome
     fastfetch
-    veracrypt       # ปิดถ้าไม่ใช้ encryption
+    veracrypt
     picom
     feh
     git
     # pkgs.chromium  # comment ถ้าไม่ได้ใช้
     lm_sensors
     mpv
-    # obsidian        # หนักมาก (Electron-based ~200MB) ใช้ mousepad แทน
+    obsidian
  
-    # Fonts - ลดจำนวน fonts ลง
+    google-fonts
     noto-fonts
     noto-fonts-cjk-sans
     font-awesome
@@ -386,7 +379,7 @@
         exec_always --no-startup-id bash /home/nixka/.screenlayout/monitor.sh
         exec_always --no-startup-id systemctl --user restart polybar
         exec --no-startup-id nm-applet
-        exec --no-startup-id lxqt-policykit-agent &
+        exec --no-startup-id /run/current-system/sw/libexec/polkit-gnome-authentication-agent-1 &
         exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 200 /home/nixka/Downloads/wallpaper/
        
         gaps inner 15
@@ -413,16 +406,16 @@
 
      services.picom = {
     enable = true;
-    backend = "xrender"; # เปลี่ยนจาก glx เป็น xrender (ประหยัด RAM ~50MB)
-    vSync = false;       # ปิด vsync เพื่อประหยัดทรัพยากร
+    backend = "glx"; # หรือใช้ "glx" ถ้าเครื่องมี GPU และอยากให้ลื่นขึ้น
+    vSync = true;
     settings = {
-      # glx-no-stencil = true;
-      # glx-no-rebind-pixmap = true;
-      # corner-radius = 12;         # ปิด rounded corners (ประหยัดเล็กน้อย)
-      # round-borders = 1;
+      glx-no-stencil = true;
+      glx-no-rebind-pixmap = true;
+      corner-radius = 12;
+      round-borders = 1;
       active-opacity = 1.0;
-      inactive-dim = 0.1;           # ลดจาก 0.15
-      inactive-opacity = 0.95;      # ลดจาก 0.90 (ใสน้อยลง = ประหยัดมากขึ้น)
+      inactive-dim = 0.15; 
+      inactive-opacity = 0.90;
 
        opacity-rule = [
       "100:class_g = 'firefox' && fullscreen"
@@ -435,7 +428,7 @@
       "97:class_g = 'Luakit' && !fullscreen"
       "97:class_g = 'luakit' && !fullscreen"
       "97:class_g = 'Thunar'"
-      "90:class_g = 'Alacritty'"    # ลดจาก 85
+      "85:class_g = 'Alacritty'"
       ];
        focus-exclude = [
       "class_g = 'luakit'"
