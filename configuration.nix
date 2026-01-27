@@ -208,7 +208,7 @@
   environment.systemPackages = with pkgs; [
     firefox
     # pkgs.librewolf  # comment ถ้าไม่ได้ใช้
-    # pkgs.luakit     # comment ถ้าไม่ได้ใช้
+    pkgs.luakit     # comment ถ้าไม่ได้ใช้
     # kdePackages.kate  # ใช้ RAM เยอะ เปลี่ยนเป็น mousepad
     xfce.mousepad     # text editor เบามาก แทน Kate
     alacritty
