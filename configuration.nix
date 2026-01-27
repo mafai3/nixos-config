@@ -12,10 +12,11 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelModules = [ "coretemp" "dell-smm-hwmon" ];
-  
+
   # Kernel parameters เพื่อประหยัด RAM
   boot.kernelParams = [
-    "mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
+      "elevator=kyber" 
+      "mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
   ];
   
   # Optimize swap usage
@@ -60,7 +61,7 @@
    zramSwap = {
     enable = true;
     memoryPercent = 50;  # ใช้ 50% ของ RAM (8GB → มี zram 4GB)
-    algorithm = "lz4";   # อัลกอริทึมบีบอัดที่เร็ว
+    algorithm = "zstd";   # อัลกอริทึมบีบอัดที่เร็ว
     priority = 10;       # ให้ใช้ zram ก่อน swap ปกติ
   };
 
@@ -92,6 +93,10 @@
  environment.shellAliases = {
    nix-save = "bash /etc/nixos/scripts/backup.sh";
 };
+
+  # 1.5 SSD Optimization
+  services.fstrim.enable = true;
+  services.fstrim.interval = "weekly"; # ทำงานสัปดาห์ละครั้ง
 
   # 2. Networking
   networking.hostName = "nixos";
@@ -150,7 +155,7 @@
     
     # เพิ่ม power management เพื่อลดความร้อน
     powerManagement.enable = true;
-    powerManagement.finegrained = true;
+    powerManagement.finegrained = false;
     
     prime = {
       offload.enable = true;
@@ -161,8 +166,8 @@
   };
 
   # 6.1 Thunar drive & Samba
-  # services.gvfs.enable = true;      # ปิดถ้าไม่ mount network drives (ประหยัด ~80MB)
-  # services.tumbler.enable = true;   # ปิดถ้าไม่ใช้ thumbnail preview (ประหยัด ~50MB)
+  services.gvfs.enable = true;      # ปิดถ้าไม่ mount network drives (ประหยัด ~80MB)
+  services.tumbler.enable = true;   # ปิดถ้าไม่ใช้ thumbnail preview (ประหยัด ~50MB)
   networking.firewall.allowPing = true;
   # services.samba.enable = true;  # ปิดถ้าไม่ได้แชร์ไฟล์ (ประหยัด ~100MB)
   services.thermald.enable = true;
@@ -183,23 +188,23 @@
     enable = true;
     settings = {
       # ใช้ powersave แทน performance เพื่อลดความร้อน
-      CPU_SCALING_GOVERNOR_ON_AC = "powersave";
+      CPU_SCALING_GOVERNOR_ON_AC = "schedutil";
       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
       
       # จำกัดความเร็ว CPU สูงสุด (i7-4xxx มักมี boost ถึง 3.0-3.5GHz)
-      CPU_SCALING_MAX_FREQ_ON_AC = 2400000;  # จำกัดไว้ที่ 2.4GHz
+      CPU_SCALING_MAX_FREQ_ON_AC = 2500000;  # จำกัดไว้ที่ 2.4GHz
       CPU_SCALING_MAX_FREQ_ON_BAT = 2000000; # จำกัดไว้ที่ 2.0GHz
       
       # ปรับ CPU Energy Performance Preference
-      CPU_ENERGY_PERF_POLICY_ON_AC = "balance_power";
+      CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
       
       # จำกัด Turbo Boost
-      CPU_BOOST_ON_AC = 0;  # ปิด Turbo Boost = ลดความร้อนเยอะ
+      CPU_BOOST_ON_AC = 1;  # ปิด Turbo Boost = ลดความร้อนเยอะ
       CPU_BOOST_ON_BAT = 0;
       
       # ลด GPU ที่ไม่จำเป็น
-      RUNTIME_PM_ON_AC = "auto";
+      RUNTIME_PM_ON_AC = "on";
       RUNTIME_PM_ON_BAT = "auto";
     }; # อันนี้ปิด settings
   };   # อันนี้ปิด services.tlp
@@ -413,14 +418,14 @@
 
      services.picom = {
     enable = true;
-    backend = "xrender"; # เปลี่ยนจาก glx เป็น xrender (ประหยัด RAM ~50MB)
-    vSync = false;       # ปิด vsync เพื่อประหยัดทรัพยากร
+    backend = "glx"; # เปลี่ยนจาก glx เป็น xrender (ประหยัด RAM ~50MB)
+    vSync = true;       # ปิด vsync เพื่อประหยัดทรัพยากร
     settings = {
       # glx-no-stencil = true;
       # glx-no-rebind-pixmap = true;
-      # corner-radius = 12;         # ปิด rounded corners (ประหยัดเล็กน้อย)
+       corner-radius = 12;         # ปิด rounded corners (ประหยัดเล็กน้อย)
       # round-borders = 1;
-      active-opacity = 1.0;
+      xactive-opacity = 1.0;
       inactive-dim = 0.1;           # ลดจาก 0.15
       inactive-opacity = 0.95;      # ลดจาก 0.90 (ใสน้อยลง = ประหยัดมากขึ้น)
 
