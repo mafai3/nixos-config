@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+ { config, pkgs, ... }:
 
 # Test push to GitHub   
 
@@ -15,8 +15,9 @@
 
   # Kernel parameters เพื่อประหยัด RAM
   boot.kernelParams = [
-      "elevator=kyber" 
-      "mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
+      "elevator=kyber"
+      "nvidia.NVreg_DynamicPowerManagement=0x02" 
+     #"mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
   ];
   
   # Optimize swap usage
@@ -96,7 +97,13 @@
  environment.shellAliases = {
    nix-save = "bash /etc/nixos/scripts/backup.sh";
 };
-
+  
+ services.flatpak.enable = true;
+ xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  }; 
+ 
   # 1.5 SSD Optimization
   services.fstrim.enable = true;
   services.fstrim.interval = "weekly"; # ทำงานสัปดาห์ละครั้ง
@@ -104,6 +111,8 @@
   # 2. Networking
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
+  networking.firewall.enable = true;
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
 
   # 3. Time zone and Locale
   time.timeZone = "Asia/Bangkok";
@@ -159,11 +168,13 @@
     # เพิ่ม power management เพื่อลดความร้อน
     powerManagement.enable = true;
     powerManagement.finegrained = false;
-    
+    nvidiaPersistenced = false;    
+
     prime = {
-      sync.enable = true;
-     #offload.enable = true;
-     #offload.enableOffloadCmd = true;  # เพิ่มคำสั่ง nvidia-offload
+     #sync.enable = true;
+      offload.enable = true;
+      offload.enableOffloadCmd = true;  # เพิ่มคำสั่ง nvidia-offload
+      reverseSync.enable = true;
       intelBusId = "PCI:0:2:0";
       nvidiaBusId = "PCI:10:0:0";
     };
@@ -204,7 +215,7 @@
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
       
       # จำกัด Turbo Boost
-      CPU_BOOST_ON_AC = 1;  # ปิด Turbo Boost = ลดความร้อนเยอะ
+      CPU_BOOST_ON_AC = 0;  # ปิด Turbo Boost = ลดความร้อนเยอะ
       CPU_BOOST_ON_BAT = 0;
       
       # ลด GPU ที่ไม่จำเป็น
@@ -242,6 +253,7 @@
     # pkgs.chromium  # comment ถ้าไม่ได้ใช้
     lm_sensors
     mpv
+    yt-dlp
     # obsidian        # หนักมาก (Electron-based ~200MB) ใช้ mousepad แทน
     unzip
     zip
@@ -367,7 +379,7 @@
         font pango:JetBrainsMono Nerd Font 8
 
         bindsym $mod+Shift+e exec --no-startup-id "echo -e 'Logout\nReboot\nShutdown' | rofi -dmenu -p 'Power Menu:' -i | xargs -I{} bash -c 'case {} in Logout) i3-msg exit;; Reboot) systemctl reboot;; Shutdown) systemctl poweroff;; esac'"
-
+        bindsym $mod+Shift+z exec nvidia-offload flatpak run org.vinegarhq.Sober
         # Keybindings
         bindsym $mod+c exec alacritty
         bindsym $mod+q kill
@@ -644,18 +656,18 @@
           label-muted-padding = 2;
         };
 
-        "module/xkeyboard" = {
+          "module/xkeyboard" = {
           type = "internal/xkeyboard";
           format-background = "#282A36";
           format-padding = 2;
           label-layout = "👾%layout%";
-          label-layout-foreground = "#FF79C6"; # สีชมพู
+          label-layout-foreground = "#FF79C6";              
         };
 
          "module/date" = {
           type = "internal/date";
           interval = 1;
-          date = "%a %d %b %Y | %H:%M:%S"; 
+          date = "%H:%M:%S | %a %b %d"; 
          #date = "%a %d %b %Y  📅 %H:%M:%S";
           format-background = "#282A36";
           format-padding = 2;
