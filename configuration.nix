@@ -27,8 +27,11 @@
   };
 
   environment.variables = {
+    PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
     "WEBKIT_DISABLE_COMPOSITING_MODE" = "1";
     "LIBVA_DRIVER_NAME" = "i965";
+    "MOZ_DISABLE_RDD_SANDBOX" = "1";
   };
 
   # 1.1 mount thunar can go win
@@ -46,7 +49,7 @@
       libvdpau-va-gl
       libva-vdpau-driver
       intel-vaapi-driver
-    
+      intel-media-driver
     ];
   };
 
@@ -158,8 +161,9 @@
     powerManagement.finegrained = false;
     
     prime = {
-      offload.enable = true;
-      offload.enableOffloadCmd = true;  # เพิ่มคำสั่ง nvidia-offload
+      sync.enable = true;
+     #offload.enable = true;
+     #offload.enableOffloadCmd = true;  # เพิ่มคำสั่ง nvidia-offload
       intelBusId = "PCI:0:2:0";
       nvidiaBusId = "PCI:10:0:0";
     };
@@ -192,11 +196,11 @@
       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
       
       # จำกัดความเร็ว CPU สูงสุด (i7-4xxx มักมี boost ถึง 3.0-3.5GHz)
-      CPU_SCALING_MAX_FREQ_ON_AC = 2500000;  # จำกัดไว้ที่ 2.4GHz
+      CPU_SCALING_MAX_FREQ_ON_AC = 3200000;  # จำกัดไว้ที่ 2.4GHz
       CPU_SCALING_MAX_FREQ_ON_BAT = 2000000; # จำกัดไว้ที่ 2.0GHz
       
       # ปรับ CPU Energy Performance Preference
-      CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
+      CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
       
       # จำกัด Turbo Boost
@@ -204,7 +208,8 @@
       CPU_BOOST_ON_BAT = 0;
       
       # ลด GPU ที่ไม่จำเป็น
-      RUNTIME_PM_ON_AC = "on";
+      RUNTIME_PM_ON_AC = "auto
+";
       RUNTIME_PM_ON_BAT = "auto";
     }; # อันนี้ปิด settings
   };   # อันนี้ปิด services.tlp
@@ -238,12 +243,50 @@
     lm_sensors
     mpv
     # obsidian        # หนักมาก (Electron-based ~200MB) ใช้ mousepad แทน
- 
+    unzip
+    zip
+    p7zip
+    unrar 
+    nodejs_20
+    playwright-driver.browsers
+    
+
     # Fonts - ลดจำนวน fonts ลง
     noto-fonts
     noto-fonts-cjk-sans
     font-awesome
   ];
+
+    environment.shellAliases = {
+    # อันนี้คือคำสั่งสั้นๆ (Aliases)
+    extract = "7z x";
+    compress = "7z a -t7z -m0=lzma2 -mx=9";
+  };
+
+  # อันนี้คือที่สำหรับวางสคริปต์ "แตกไฟล์อัตโนมัติ" (Function)
+  environment.interactiveShellInit = ''
+    ex ()
+    {
+      if [ -f "$1" ] ; then
+        case "$1" in
+          *.tar.bz2)   tar xjf "$1"     ;;
+          *.tar.gz)    tar xzf "$1"     ;;
+          *.bz2)       bunzip2 "$1"     ;;
+          *.rar)       unrar x "$1"     ;;
+          *.gz)        gunzip "$1"      ;;
+          *.tar)       tar xf "$1"      ;;
+          *.tbz2)      tar xjf "$1"     ;;
+          *.tgz)       tar xzf "$1"     ;;
+          *.zip)       unzip "$1"       ;;
+          *.Z)         uncompress "$1"  ;;
+          *.7z)        7z x "$1"        ;;
+          *)           echo "'$1' cannot be extracted via ex()" ;;
+        esac
+      else
+        echo "'$1' is not a valid file"
+      fi
+    }
+  '';
 
   # 9. Fonts
   fonts.packages = with pkgs; [
