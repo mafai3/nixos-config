@@ -16,10 +16,8 @@
   # Kernel parameters เพื่อประหยัด RAM
   boot.kernelParams = [
       "elevator=kyber"
-      "snd_hda_intel.power_save=0"
-      "transparent_hugepage=madvise"
       "nvidia.NVreg_DynamicPowerManagement=0x02" 
-      "mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
+     #"mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
   ];
   
   # Optimize swap usage
@@ -675,7 +673,7 @@
           format-volume = "<label-volume>";
           format-volume-background = "#282A36";
           format-volume-padding = 2;
-          label-volume = "🎸 %percentage%%";
+          label-volume = "📣 %percentage%%";
           label-volume-foreground = "#FFB86C"; # สีส้ม
        
           format-muted = "<label-muted>";
