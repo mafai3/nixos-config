@@ -21,7 +21,7 @@
       #"snd_hda_intel.power_save=0"
       #"transparent_hugepage=madvise"
       "nvidia.NVreg_DynamicPowerManagement=0x02" 
-      #"mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
+      "mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
   ];
   
   # Optimize swap usage
