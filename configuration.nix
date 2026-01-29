@@ -12,14 +12,16 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelModules = [ "coretemp" "dell-smm-hwmon" ];
-
+  boot.tmp.useTmpfs = true;
+  boot.tmp.tmpfsSize = "2G";
+ 
   # Kernel parameters เพื่อประหยัด RAM
   boot.kernelParams = [
       "elevator=kyber"
-      "snd_hda_intel.power_save=0"
-      "transparent_hugepage=madvise"
+      #"snd_hda_intel.power_save=0"
+      #"transparent_hugepage=madvise"
       "nvidia.NVreg_DynamicPowerManagement=0x02" 
-      "mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
+      #"mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
   ];
   
   # Optimize swap usage
