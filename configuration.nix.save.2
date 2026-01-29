@@ -227,9 +227,10 @@
   # 8. Programs
   environment.systemPackages = with pkgs; [
     firefox
-    # pkgs.librewol
-    pkgs.luakit     
-    xfce.mousepad  
+    # pkgs.librewolf  # comment ถ้าไม่ได้ใช้
+    pkgs.luakit     # comment ถ้าไม่ได้ใช้
+    # kdePackages.kate  # ใช้ RAM เยอะ เปลี่ยนเป็น mousepad
+    xfce.mousepad     # text editor เบามาก แทน Kate
     alacritty
     arandr
     rofi
@@ -242,21 +243,24 @@
     # samba  # ย้ายไปอยู่ใน services แล้ว
     # cifs-utils      # ปิดถ้าไม่ mount Windows shares
     flameshot
-    lxqt.lxqt-policykit
+    lxqt.lxqt-policykit  # เบากว่า polkit_gnome (~50MB)
     fastfetch
-    veracrypt     
+    veracrypt       # ปิดถ้าไม่ใช้ encryption
     picom
     feh
     git
+    # pkgs.chromium  # comment ถ้าไม่ได้ใช้
     lm_sensors
     mpv
+    yt-dlp
+    # obsidian        # หนักมาก (Electron-based ~200MB) ใช้ mousepad แทน
     unzip
     zip
     p7zip
     unrar 
     nodejs_20
     playwright-driver.browsers
-    yt-dlp   
+    
 
     # Fonts - ลดจำนวน fonts ลง
     noto-fonts
@@ -377,7 +381,7 @@
 
         # Hide edge borders
         #hide_edge_borders smart
-       
+
         bindsym $mod+Shift+e exec --no-startup-id "echo -e 'Logout\nReboot\nShutdown' | rofi -dmenu -p 'Power Menu:' -i | xargs -I{} bash -c 'case {} in Logout) i3-msg exit;; Reboot) systemctl reboot;; Shutdown) systemctl poweroff;; esac'"
         bindsym $mod+Shift+z exec nvidia-offload flatpak run org.vinegarhq.Sober
         # Keybindings
@@ -449,10 +453,10 @@
         exec --no-startup-id lxqt-policykit-agent &
         exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 200 /home/nixka/Downloads/wallpaper/
    
-        # Dracula border color
         client.focused          #bd93f9 #282a36 #f8f8f2 #ff79c6   #bd93f9
         client.focused_inactive #44475a #282a36 #f8f8f2 #44475a   #44475a
         client.unfocused        #282a36 #282a36 #6272a4 #282a36   #282a36       
+       
         gaps inner 15
         gaps outer 10
         for_window [class=".*"] border pixel 0
@@ -475,29 +479,6 @@
       '';
     };
 
-         programs.mpv = {
-   enable = true;
-   # ติดตั้งสคริปต์เสริม เช่น uosc (UI ใหม่) หรือ sponsorblock
-   scripts = with pkgs.mpvScripts; [ 
-     uosc 
-     mpris 
-     sponsorblock 
-   ];
-   # การตั้งค่าใน mpv.conf
-    config = {
-     profile = "high-quality";
-     hwdec = "auto-safe"; # เปิดใช้ Hardware Acceleration
-     vo = "gpu";
-     ytdl-format = "bestvideo+bestaudio";
-   };
-   # การตั้งค่าปุ่มลัดใน input.conf
-   bindings = {
-     "WHEEL_UP" = "seek 10";
-     "WHEEL_DOWN" = "seek -10";
-   };
- };
-    
-
      services.picom = {
     enable = true;
     backend = "glx"; # เปลี่ยนจาก glx เป็น xrender (ประหยัด RAM ~50MB)
@@ -507,9 +488,9 @@
       #glx-no-rebind-pixmap = true;
       #corner-radius = 8;         # ปิด rounded corners (ประหยัดเล็กน้อย)
       #round-borders = 0;
-      xactive-opacity = 1.0;
-      inactive-dim = 0.1;           # ลดจาก 0.15
-      inactive-opacity = 0.95;      # ลดจาก 0.90 (ใสน้อยลง = ประหยัดมากขึ้น)
+      #xactive-opacity = 1.0;
+      #inactive-dim = 0.1;           # ลดจาก 0.15
+      #inactive-opacity = 0.95;      # ลดจาก 0.90 (ใสน้อยลง = ประหยัดมากขึ้น)
 
        opacity-rule = [
       "100:class_g = 'firefox' && fullscreen"
