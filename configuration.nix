@@ -384,7 +384,7 @@
         #hide_edge_borders smart
        
         bindsym $mod+Shift+e exec --no-startup-id "echo -e 'Logout\nReboot\nShutdown' | rofi -dmenu -p 'Power Menu:' -i | xargs -I{} bash -c 'case {} in Logout) i3-msg exit;; Reboot) systemctl reboot;; Shutdown) systemctl poweroff;; esac'"
-        bindsym $mod+Shift+z exec nvidia-offload flatpak run org.vinegarhq.Sober
+       # bindsym $mod+Shift+z exec nvidia-offload flatpak run org.vinegarhq.Sober
         # Keybindings
         bindsym $mod+c exec alacritty
         bindsym $mod+q kill
@@ -606,7 +606,7 @@
          type = "internal/cpu";
          interval = 2; # เพิ่มช่วงเวลาการอัปเดต (วินาที)
   
-          warn-percentage = 80;
+          warn-percentage = 96;
 
           format = "<label>";
           format-background = "#282A36";
@@ -623,7 +623,7 @@
         "module/memory" = {
           type = "internal/memory";
           interval = 3; # อัปเดตทุก 3 วินาที
-          warn-percentage = 80;
+          warn-percentage = 96;
 
           format = "<label>";
           format-background = "#282A36";
@@ -646,7 +646,7 @@
           type = "internal/temperature";
           interval = 2;  # อัพเดททุก 2 วินาที
           thermal-zone = 4;  # ใช้ thermal zone แรก (CPU)
-          warn-temperature = 80;  # เตือนเมื่อร้อนเกิน 70°C
+          warn-temperature = 98;  # เตือนเมื่อร้อนเกิน 70°C
           
           format = "<label>";
           format-background = "#282A36";
@@ -678,7 +678,7 @@
           format-volume = "<label-volume>";
           format-volume-background = "#282A36";
           format-volume-padding = 2;
-          label-volume = "🎸 %percentage%%";
+          label-volume = "📣 %percentage%%";
           label-volume-foreground = "#FFB86C"; # สีส้ม
        
           format-muted = "<label-muted>";
