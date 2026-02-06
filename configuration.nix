@@ -21,17 +21,18 @@
       #"snd_hda_intel.power_save=0"
       #"transparent_hugepage=madvise"
       "nvidia.NVreg_DynamicPowerManagement=0x02" 
+      #"intel_pstate=disable"
       "mitigations=off"  # ปิด security mitigations เพื่อประสิทธิภาพ (ไม่แนะนำถ้าเชื่อมต่อ internet โดยตรง)
   ];
   
   # Optimize swap usage
   boot.kernel.sysctl = {
-    "vm.swappiness" = 100;           # ลดการใช้ swap (ค่า default = 60)
+    "vm.swappiness" = 10;           # ลดการใช้ swap (ค่า default = 60)
     "vm.vfs_cache_pressure" = 50;   # ลดการ cache ที่ไม่จำเป็น
     "vm.dirty_ratio" = 10;          # ลดการใช้ RAM สำหรับ write cache
-    "vm.dirty_background_ratio" = 5;
-    "vm.dirty_writeback_centisecs" = 1500;
-    "kernel.nmi_watchdog" = 0;
+    #"vm.dirty_background_ratio" = 5;
+    #"vm.dirty_writeback_centisecs" = 1500;
+    #"kernel.nmi_watchdog" = 0;
   };
 
   environment.variables = {
@@ -43,9 +44,9 @@
   };
 
     environment.sessionVariables = {
-    "MOZ_USE_XINPUT2" = "1";
-    "MOZ_ENABLE_WAYLAND" = "0";
-    "MOZ_WEBRENDER" = "1";
+    #"MOZ_USE_XINPUT2" = "1";
+    #"MOZ_ENABLE_WAYLAND" = "0";
+    #"MOZ_WEBRENDER" = "1";
   };
 
   # 1.1 mount thunar can go win
@@ -56,6 +57,8 @@
     fsType = "ntfs3";
     options = [ "nofail" "rw" "uid=1000" "force" ];
   };
+       # fileSystems."/".options = [ "noatime" "nodiratime" "discard" ];
+
   hardware.graphics = {
     enable = true;
     enable32Bit = true; # สำคัญสำหรับการเล่นเกมหรือรันโปรแกรม 32-bit
@@ -71,22 +74,23 @@
   nix.gc = {
     automatic = true;
     dates = "weekly";
-    options = "--delete-older-than 7d";
+    options = "--delete-older-than 3d";
   };
-  nix.settings.auto-optimise-store = true;
+    nix.settings.auto-optimise-store = true;
+    boot.loader.systemd-boot.configurationLimit = 5;  
 
    zramSwap = {
     enable = true;
-    memoryPercent = 75;  # ใช้ 50% ของ RAM (8GB → มี zram 4GB)
-    algorithm = "lz4";   # อัลกอริทึมบีบอัดที่เร็ว
+    memoryPercent = 50;  # ใช้ 50% ของ RAM (8GB → มี zram 4GB)
+    algorithm = "zstd";   # อัลกอริทึมบีบอัดที่เร็ว
     priority = 10;       # ให้ใช้ zram ก่อน swap ปกติ
   };
 
   # earlyoom - ป้องกันระบบแฮงเมื่อ RAM เต็ม
   services.earlyoom = {
     enable = true;
-    freeMemThreshold = 10;  # เริ่มทำงานเมื่อ RAM เหลือ 5%
-    freeSwapThreshold = 20; # เริ่มทำงานเมื่อ Swap เหลือ 10%
+    freeMemThreshold = 5;  # เริ่มทำงานเมื่อ RAM เหลือ 5%
+    freeSwapThreshold = 10; # เริ่มทำงานเมื่อ Swap เหลือ 10%
   };
 
 # 1.3 เปลี่ยน Shell เป็น Zsh เพื่อให้มีสีตอนพิมพ์คำสั่ง
@@ -214,27 +218,15 @@
    services.tlp = {
     enable = true;
     settings = {
-      # ใช้ powersave แทน performance เพื่อลดความร้อน
       CPU_SCALING_GOVERNOR_ON_AC = "schedutil";
-      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-      
-      # จำกัดความเร็ว CPU สูงสุด (i7-4xxx มักมี boost ถึง 3.0-3.5GHz)
       CPU_SCALING_MAX_FREQ_ON_AC = 3200000;  # จำกัดไว้ที่ 2.4GHz
-      CPU_SCALING_MAX_FREQ_ON_BAT = 2000000; # จำกัดไว้ที่ 2.0GHz
-      
-      # ปรับ CPU Energy Performance Preference
       CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
-      CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
-      
-      # จำกัด Turbo Boost
-      CPU_BOOST_ON_AC = 1;  # ปิด Turbo Boost = ลดความร้อนเยอะ
-      CPU_BOOST_ON_BAT = 0;
-      CPU_MAX_PERF_ON_AC = 80;
-      
-      # ลด GPU ที่ไม่จำเป็น
-      RUNTIME_PM_ON_AC = "auto
-";
-      RUNTIME_PM_ON_BAT = "auto";
+      CPU_BOOST_ON_AC = 0;  # ปิด Turbo Boost = ลดความร้อนเยอะ
+      #CPU_MAX_PERF_ON_AC = 80;
+      #CPU_MIN_PERF_ON_AC = 0;           # ให้ลดได้ถึง 0% เมื่อไม่ใช้งาน
+      #SCHED_POWERSAVE_ON_AC = 0;        # ไม่รวม tasks (ให้กระจาย core)
+      #NMI_WATCHDOG = 0; 
+      RUNTIME_PM_ON_AC = "auto";
     }; # อันนี้ปิด settings
   };   # อันนี้ปิด services.tlp
 
@@ -394,7 +386,9 @@
         #hide_edge_borders smart
        
         bindsym $mod+Shift+e exec --no-startup-id "echo -e 'Logout\nReboot\nShutdown' | rofi -dmenu -p 'Power Menu:' -i | xargs -I{} bash -c 'case {} in Logout) i3-msg exit;; Reboot) systemctl reboot;; Shutdown) systemctl poweroff;; esac'"
-       # bindsym $mod+Shift+z exec nvidia-offload flatpak run org.vinegarhq.Sober
+        #bindsym $mod+Shift+z exec nvidia-offload flatpak run org.vinegarhq.Sober
+        bindsym $mod+Tab exec --no-startup-id feh --bg-fill --randomize /home/nixka/Downloads/wallpaper/*       
+
         # Keybindings
         bindsym $mod+c exec alacritty
         bindsym $mod+q kill
@@ -404,7 +398,8 @@
         bindsym $mod+Shift+c reload
         bindsym Print exec flameshot gui
         bindsym $mod+Shift+r restart
-        
+                
+
         # Focus
         bindsym $mod+h focus left
         bindsym $mod+j focus down
@@ -462,8 +457,9 @@
         exec_always --no-startup-id systemctl --user restart polybar
         exec --no-startup-id nm-applet
         exec --no-startup-id lxqt-policykit-agent &
-        exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 200 /home/nixka/Downloads/wallpaper/
-   
+        #exec_always --no-startup-id feh --bg-fill --randomize --slideshow-delay 2000 /home/nixka/Downloads/wallpaper/
+        exec --no-startup-id feh --bg-fill --randomize /home/nixka/Downloads/wallpaper/
+
         # Dracula border color
         client.focused          #bd93f9 #282a36 #f8f8f2 #ff79c6   #bd93f9
         client.focused_inactive #44475a #282a36 #f8f8f2 #44475a   #44475a
@@ -516,11 +512,11 @@
      services.picom = {
     enable = true;
     backend = "glx"; # เปลี่ยนจาก glx เป็น xrender (ประหยัด RAM ~50MB)
-    vSync = true;       # ปิด vsync เพื่อประหยัดทรัพยากร
+    vSync = false;       # ปิด vsync เพื่อประหยัดทรัพยากร
     settings = {
       #glx-no-stencil = true;
       #glx-no-rebind-pixmap = true;
-      #corner-radius = 8;         # ปิด rounded corners (ประหยัดเล็กน้อย)
+      corner-radius = 13;         # ปิด rounded corners (ประหยัดเล็กน้อย)
       #round-borders = 0;
       xactive-opacity = .98;
       inactive-dim = 0.05;           # ลดจาก 0.15
@@ -548,6 +544,7 @@
       detect-client-opacity = true;
       detect-transient = true;
       use-damage = true;
+      unredir-if-possible = true;
     };
   };
 
@@ -581,7 +578,7 @@
 
           modules-left = "cpu memory temperature disk";
           modules-center = "i3";
-          modules-right = "pulseaudio xkeyboard date";
+          modules-right = "date pulseaudio xkeyboard ";
 
           tray-position = "right";
           
@@ -657,7 +654,7 @@
           type = "internal/temperature";
           interval = 5;  # อัพเดททุก 2 วินาที
           thermal-zone = 4;  # ใช้ thermal zone แรก (CPU)
-          warn-temperature = 85;  # เตือนเมื่อร้อนเกิน 70°C
+          warn-temperature = 95;  # เตือนเมื่อร้อนเกิน 70°C
           
           format = "<label>";
           format-background = "#282A36";
