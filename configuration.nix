@@ -1,13 +1,21 @@
- { config, pkgs, ... }:
+{ config, pkgs, ... }:
 
-# Test push to GitHub   
+# ========================================
+# NixOS Configuration - Portable
+# ========================================
+# สำหรับ: Dell Inspiron 7447
+# CPU: i7-4700HQ | GPU: GTX 850M | RAM: 8GB
+# 
+# ⚠️ IMPORTANT: ห้ามใช้ hardware-configuration.nix ข้ามเครื่อง!
+# ต้อง generate ใหม่ทุกครั้งที่ติดตั้ง
+#
+# Quick Restore: ดู README.md
+# ========================================
 
 {
   imports = [
-    ./hardware-configuration.nix
-    "${builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz"}/nixos"
-    #"${builtins.fetchTarball
-    #"https://github.com/nix-community/home-manager/archive/master.tar.gz"}/nixos"
+    ./hardware-configuration.nix  # ← ไฟล์นี้ห้าม commit!
+     "${builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz"}/nixos"
   ];
 
   # 1. Bootloader
@@ -343,13 +351,13 @@
     extraGroups = [ "wheel" "networkmanager" "video" "storage" "audio"  "disk" ];
   };
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
 
     ############### --- Home Manager --- #####################  
 
     home-manager.backupFileExtension = "backup";
     home-manager.users.nixka = { pkgs, lib, ... }: {
-    home.stateVersion = "25.11"; 
+    home.stateVersion = "25.05"; 
     home.enableNixpkgsReleaseCheck = false;
     
     # ติดตั้ง polybar ที่มี i3 + pulse support ใน home-manager
