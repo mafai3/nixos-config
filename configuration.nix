@@ -30,7 +30,7 @@
   
   # Optimize swap usage
   boot.kernel.sysctl = {
-    "vm.swappiness" = 10;           # ลดการใช้ swap (ค่า default = 60)
+    "vm.swappiness" = 50;           # ลดการใช้ swap (ค่า default = 60)
     "vm.vfs_cache_pressure" = 50;   # ลดการ cache ที่ไม่จำเป็น
     "vm.dirty_ratio" = 10;          # ลดการใช้ RAM สำหรับ write cache
     #"vm.dirty_background_ratio" = 5;
@@ -47,9 +47,12 @@
   };
 
     environment.sessionVariables = {
-    #"MOZ_USE_XINPUT2" = "1";
-    #"MOZ_ENABLE_WAYLAND" = "0";
-    #"MOZ_WEBRENDER" = "1";
+    "MOZ_USE_XINPUT2" = "1";
+    "MOZ_ENABLE_WAYLAND" = "0";
+    "MOZ_WEBRENDER" = "1";
+    "MOZ_X11_EGL" = "1";
+    "MOZ_ACCELERATED" = "1";
+    "LIBVA_DRIVER_NAME" = "i965";
   };
 
   hardware.graphics = {
@@ -109,7 +112,7 @@
   # Test push to GitHub
   # 1.4 backup github auto
  environment.shellAliases = {
-   nix-save = "bash /etc/nixos/scripts/backup.sh";
+   nix-save = "sudo bash /etc/nixos/scripts/backup.sh";
  };
   
  services.flatpak.enable = true;
@@ -179,15 +182,15 @@
     package = config.boot.kernelPackages.nvidiaPackages.legacy_470;
     
     # เพิ่ม power management เพื่อลดความร้อน
-    powerManagement.enable = true;
+    powerManagement.enable = false;
     powerManagement.finegrained = false;
     nvidiaPersistenced = false;    
 
     prime = {
      #sync.enable = true;
       offload.enable = true;
-      offload.enableOffloadCmd = true;  # เพิ่มคำสั่ง nvidia-offload
-      reverseSync.enable = true;
+      offload.enableOffloadCmd = false;  # เพิ่มคำสั่ง nvidia-offload
+      reverseSync.enable = false;
       intelBusId = "PCI:0:2:0";
       nvidiaBusId = "PCI:10:0:0";
     };
@@ -219,12 +222,12 @@
       CPU_SCALING_GOVERNOR_ON_AC = "schedutil";
       CPU_SCALING_MAX_FREQ_ON_AC = 3200000;  # จำกัดไว้ที่ 2.4GHz
       CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
-      CPU_BOOST_ON_AC = 0;  # ปิด Turbo Boost = ลดความร้อนเยอะ
-      #CPU_MAX_PERF_ON_AC = 80;
+      CPU_BOOST_ON_AC = 1;
+      CPU_MAX_PERF_ON_AC = 80;
       #CPU_MIN_PERF_ON_AC = 0;           # ให้ลดได้ถึง 0% เมื่อไม่ใช้งาน
       #SCHED_POWERSAVE_ON_AC = 0;        # ไม่รวม tasks (ให้กระจาย core)
       #NMI_WATCHDOG = 0; 
-      RUNTIME_PM_ON_AC = "auto";
+      RUNTIME_PM_ON_AC = "on";
     }; # อันนี้ปิด settings
   };   # อันนี้ปิด services.tlp
 
@@ -424,7 +427,12 @@
         #package = pkgs.papirus-icon-theme;
          name = "Vimix-Black";
          package = pkgs.vimix-icon-theme;
-      };	
+      };
+       cursorTheme = {
+        name = "X11";
+        package = pkgs.xorg.xcursorthemes;
+        size = 16;	
+      };
     };
 
     # สำหรับแอปที่ใช้ Qt (เช่น VLC หรือโปรแกรมอื่นๆ)

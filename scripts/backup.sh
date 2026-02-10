@@ -1,33 +1,34 @@
 #!/usr/bin/env bash
 
-# NixOS GitHub Backup Script
+set -e  # Exit on error
 
-echo "🔄 Backing up NixOS configuration to GitHub..."
+echo "🔄 Backing up NixOS configuration..."
 
-cd /etc/nixos || exit
-
-# Check if git repo exists
-if [ ! -d ".git" ]; then
-    echo "❌ Not a git repository!"
-    echo "Run: cd /etc/nixos && sudo git init"
-    exit 1
-fi
+cd /etc/nixos
 
 # Add files
+echo "📝 Adding files..."
 git add configuration.nix
-git add hardware-configuration.nix 2>/dev/null || true
 git add scripts/ 2>/dev/null || true
 
 # Check if there are changes
-if git diff --staged --quiet; then
+if git diff --cached --quiet; then
     echo "✅ No changes to commit"
-    exit 0
+else
+    # Commit
+    echo "💾 Committing..."
+    git commit -m "Auto backup $(date '+%Y-%m-%d %H:%M:%S')"
+    
+    # Push
+    echo "🚀 Pushing to GitHub..."
+    git push origin main
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Push successful!"
+    else
+        echo "❌ Push failed!"
+        exit 1
+    fi
 fi
-
-# Commit with timestamp
-git commit -m "Auto backup $(date '+%Y-%m-%d %H:%M:%S')"
-
-# Push to GitHub
-git push origin main
 
 echo "✅ Backup complete!"
