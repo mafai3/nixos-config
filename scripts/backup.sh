@@ -1,34 +1,27 @@
 #!/usr/bin/env bash
 
-set -e  # Exit on error
+set -e
 
-echo "🔄 Backing up NixOS configuration..."
-
+echo "🔍 Checking changes..."
 cd /etc/nixos
 
-# Add files
-echo "📝 Adding files..."
-git add configuration.nix
-git add scripts/ 2>/dev/null || true
+# Pull ก่อนเผื่อมี commit ใหม่จาก GitHub
+echo "⬇️  Pulling latest changes..."
+git pull --rebase origin master
 
-# Check if there are changes
-if git diff --cached --quiet; then
-    echo "✅ No changes to commit"
-else
-    # Commit
-    echo "💾 Committing..."
-    git commit -m "Auto backup $(date '+%Y-%m-%d %H:%M:%S')"
+# เช็คว่ามี changes ไหม
+if [[ -n $(git status --porcelain) ]]; then
+    echo "📦 Adding files..."
+    git add configuration.nix
+    git add scripts/ 2>/dev/null || true
     
-    # Push
+    echo "💾 Committing..."
+    git commit -m "Backup $(date +%Y-%m-%d_%H:%M:%S)"
+    
     echo "🚀 Pushing to GitHub..."
     git push origin master
     
-    if [ $? -eq 0 ]; then
-        echo "✅ Push successful!"
-    else
-        echo "❌ Push failed!"
-        exit 1
-    fi
+    echo "✅ Backup complete!"
+else
+    echo "ℹ️  No changes to backup"
 fi
-
-echo "✅ Backup complete!"
