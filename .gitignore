@@ -3,3 +3,4 @@ hardware-configuration.nix
 *.swp
 .git/
 
+hardware-configuration.nix
