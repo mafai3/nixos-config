@@ -61,6 +61,7 @@
     "MOZ_X11_EGL" = "1";
     "MOZ_ACCELERATED" = "1";
     "LIBVA_DRIVER_NAME" = "i965";
+    "VDPAU_DRIVER" = "va_gl";
   };
 
   hardware.graphics = {
@@ -85,7 +86,7 @@
 
    zramSwap = {
     enable = true;
-    memoryPercent = 50;  # ใช้ 50% ของ RAM (8GB → มี zram 4GB)
+    memoryPercent = 60;  # ใช้ 50% ของ RAM (8GB → มี zram 4GB)
     algorithm = "zstd";   # อัลกอริทึมบีบอัดที่เร็ว
     priority = 10;       # ให้ใช้ zram ก่อน swap ปกติ
   };
@@ -276,12 +277,14 @@
     gnome-themes-extra
     adwaita-icon-theme
     wireplumber
+    pkgs.chromium    
 
     # Fonts - ลดจำนวน fonts ลง
     noto-fonts
     noto-fonts-cjk-sans
     font-awesome
   ];
+
 
     environment.shellAliases = {
     # อันนี้คือคำสั่งสั้นๆ (Aliases)
@@ -381,8 +384,8 @@
     
     colors = {
       primary = {
-        background = "#1e1e1e";
-        foreground = "#ffffff"; 
+        background = "#161821";
+        foreground = "#d2d4de"; 
       };
       
       cursor = {
