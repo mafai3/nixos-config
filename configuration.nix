@@ -278,6 +278,9 @@
     adwaita-icon-theme
     wireplumber
     pkgs.chromium    
+    matcha-gtk-theme 
+    papirus-icon-theme
+    bibata-cursors  
 
     # Fonts - ลดจำนวน fonts ลง
     noto-fonts
@@ -358,7 +361,7 @@
 
     ############### --- Home Manager --- #####################  
 
-    home-manager.backupFileExtension = "backup";
+    home-manager.backupFileExtension = "bak-${builtins.toString builtins.currentTime}";
     home-manager.users.nixka = { pkgs, lib, ... }: {
     home.stateVersion = "25.05"; 
     home.enableNixpkgsReleaseCheck = false;
@@ -371,87 +374,82 @@
       })
     ]; 
 
-        programs.alacritty = {
-  enable = true;
-  settings = {
-    font = {
-      normal = {
-        family = "JetBrainsMono Nerd Font";
-        style = "Regular";
-      };
-      size = 9;
-    };
-    
-    colors = {
-      primary = {
-        background = "#161821";
-        foreground = "#d2d4de"; 
-      };
-      
-      cursor = {
-        text = "#282c34";
-        cursor = "#528bff";
-      };
+  programs.alacritty = {
+    enable = true;
+    settings = {
+      font = {
         normal = {
-          black =   "#1a1b26";
-          red =     "#f7768e";
-          green =   "#9ec07c";
-          yellow =  "#e0af68";
-          blue =    "#7aa2f7";
-          magenta = "#bb9af7";
-          cyan =    "#7dcfff";
-          white =   "#a9b1d6";      
+          family = "JetBrainsMono Nerd Font";
+          style = "Regular";
+        };
+        size = 9;
       };
-      
-      bright = {
-        black = "#5c6370";
-        red = "#e06c75";
-        green = "#98c379";
-        yellow = "#e5c07b";
-        blue = "#61afef";
-        magenta = "#c678dd";
-        cyan = "#56b6c2";
-        white = "#ffffff";
-      };
-    };
-    
-    window = {
-      padding = {
-        x = 10;
-        y = 10;
+
+        colors = {
+          primary = {
+            background = "#161821";
+            foreground = "#d2d4de";
+          };
+               normal = {
+            black   = "#161821";
+            red     = "#e27878";
+            green   = "#b4be82";
+            yellow  = "#e2a478";
+            blue    = "#84a0c6";
+            magenta = "#a093c7";
+            cyan    = "#89b8c2";
+            white   = "#c6c8d1";
+          };
+          bright = {
+            black =   "#6b7089";
+            red =     "#e98989";
+            green =   "#c0ca8e";
+            yellow =  "#e9b189";
+            blue =    "#91acd1";
+            magenta = "#ada0d3";
+            cyan =    "#95c4ce";
+            white =   "#d2d4de";
+          };
+        };    
+      window = {
+        padding = {
+          x = 10;
+          y = 10;
+        };
       };
     };
   };
-};
       
-     # --- เพิ่มตรงนี้เพื่อให้หน้าต่างโปรแกรมเป็นสีมืด ---
-    gtk = {
-      enable = true;
-      theme = {
-       #name = "Adwaita-dark";
-       #package = pkgs.gnome-themes-extra;
-        name = "Matcha-dark-aliz"; 
-        package = pkgs.matcha-gtk-theme;
-      };
-      iconTheme = {
-        #name = "Papirus-Dark";
-        #package = pkgs.papirus-icon-theme;
-         name = "Vimix-Black";
-         package = pkgs.vimix-icon-theme;
-      };
-       cursorTheme = {
-        name = "X11";
-        package = pkgs.xorg.xcursorthemes;
-        size = 16;	
-      };
+            gtk = {
+    enable = true;
+    theme = {
+      name = "Arc-Dark";   # เปลี่ยนจาก aliz → azul (Iceberg)
+      package = pkgs.arc-theme;
     };
-
-    # สำหรับแอปที่ใช้ Qt (เช่น VLC หรือโปรแกรมอื่นๆ)
-    qt = {
+    iconTheme = {
+      name = "Papirus-Dark";        # เปลี่ยนจาก Vimix
+      package = pkgs.papirus-icon-theme;
+    };
+    cursorTheme = {
+      name = "Bibata-Modern-Ice";   # เปลี่ยน cursor
+      package = pkgs.bibata-cursors;
+      size = 16;
+    };
+    font = {
+      name = "JetBrainsMono Nerd Font";
+      size = 9;
+    };
+     gtk3.extraConfig = {
+      gtk-application-prefer-dark-theme = true;
+    };
+    gtk4.extraConfig = {
+      gtk-application-prefer-dark-theme = true;
+    };
+  };  
+         qt = {
       enable = true;
-      
-platformTheme.name = "gtk";
-      style.name = "adwaita";
+        platformTheme.name = "gtk";
+        style.name = "adwaita";
     };
 
     xsession.windowManager.i3 = {
@@ -657,7 +655,7 @@ platformTheme.name = "gtk";
 
           modules-left = "cpu memory temperature disk";
           modules-center = "i3";
-          modules-right = "date pulseaudio xkeyboard ";
+          modules-right = "pulseaudio xkeyboard time date";
 
           tray-position = "right";
           
@@ -789,15 +787,26 @@ platformTheme.name = "gtk";
           label-layout-foreground = "#FF79C6";              
         };
 
-         "module/date" = {
+               "module/date" = {
           type = "internal/date";
-          interval = 1;
-          date = "%H:%M:%S | %a %b %d"; 
-         #date = "%a %d %b %Y  📅 %H:%M:%S";
-          format-background = "#282A36";
-          format-padding = 2;
+          interval = 5;
+          date = "☕ %a %b %d";
+          format = "<label>";
+          format-background = "#282a36"; # Iceberg Background
+          format-foreground = "#bd93f9"; # Iceberg Blue
+          format-padding = 1;
           label = "%date%";
-          label-foreground = "#F8F8F2";
+        };
+
+              "module/time" = {
+          type = "internal/date";
+           interval = 1;
+           date = "⏰ %H:%M:%S";
+           format = "<label>";
+           format-background = "#282a36"; # Iceberg Background
+           format-foreground = "#ff79c6"; # Iceberg Foreground (Low Contrast)
+           format-padding = 1;
+           label = "%date%";
         };
       };
     };
