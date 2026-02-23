@@ -804,7 +804,7 @@
            date = "⏰ %H:%M:%S";
            format = "<label>";
            format-background = "#282a36"; # Iceberg Background
-           format-foreground = "#ff79c6"; # Iceberg Foreground (Low Contrast)
+           format-foreground = "#50FA7B"; # Iceberg Foreground (Low Contrast)
            format-padding = 1;
            label = "%date%";
         };
